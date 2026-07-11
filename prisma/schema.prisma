@@ -1,0 +1,313 @@
+// Ma Superapp Personnelle (VIDA) — schéma de données
+// Convention : toutes les dates métier (pas les timestamps techniques) sont stockées
+// en String "YYYY-MM-DD" local, jamais en DateTime UTC — voir CLAUDE.md.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+/// Un utilisateur = un compte Clerk. id = Clerk user id.
+model User {
+  id        String   @id
+  createdAt DateTime @default(now())
+
+  settings Settings?
+
+  transactions      Transaction[]
+  sportSessions     SportSession[]
+  weights           Weight[]
+  habits            Habit[]
+  habitChecks       HabitCheck[]
+  goals             Goal[]
+  learningSessions  LearningSession[]
+  books             Book[]
+  readingLogs       ReadingLog[]
+  dependencyItems   DependencyItem[]
+  dependencyCounts  DependencyCount[]
+  houseTasks        HouseTask[]
+  houseTaskLogs     HouseTaskLog[]
+  contacts          Contact[]
+  contactLogs       ContactLog[]
+  prayerChecks      PrayerCheck[]
+  vehicleTasks      VehicleTask[]
+  vehicleTaskLogs   VehicleTaskLog[]
+  sleepLogs         SleepLog[]
+  todoTasks         TodoTask[]
+}
+
+/// Réglages + petits paramètres par domaine (un par utilisateur).
+model Settings {
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name    String @default("")
+  currency String @default("EUR")
+
+  // Domaines actifs (13 ids) ; tous actifs par défaut.
+  activeDomains String[] @default(["fin","sport","hab","goal","book","dep","maison","rel","priere","vehicule","sommeil","todo"])
+
+  // Prière
+  prayerCity   String?
+  prayerLat    Float?
+  prayerLng    Float?
+  prayerMethod String  @default("19")
+
+  // Petits réglages numériques par domaine
+  monthlyBudget Int   @default(1000) // fin
+  weeklyTarget  Int   @default(3)    // sport
+  sleepTarget   Float @default(8)    // sommeil
+
+  updatedAt DateTime @updatedAt
+}
+
+/* ============ FINANCES ============ */
+enum TransactionType {
+  expense
+  income
+}
+
+model Transaction {
+  id     String          @id @default(cuid())
+  userId String
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label  String
+  amount Float
+  cat    String
+  type   TransactionType
+  date   String // YYYY-MM-DD
+
+  @@index([userId, date])
+}
+
+/* ============ SPORT ============ */
+model SportSession {
+  id      String @id @default(cuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type    String
+  minutes Int
+  date    String // YYYY-MM-DD
+
+  @@index([userId, date])
+}
+
+model Weight {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kg     Float
+  date   String // YYYY-MM-DD
+
+  @@unique([userId, date])
+}
+
+/* ============ HABITUDES ============ */
+model Habit {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name   String
+
+  checks HabitCheck[]
+}
+
+model HabitCheck {
+  id      String @id @default(cuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  habitId String
+  habit   Habit  @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  date    String // YYYY-MM-DD
+
+  @@unique([habitId, date])
+  @@index([userId, date])
+}
+
+/* ============ OBJECTIFS ============ */
+model Goal {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title    String
+  progress Int    @default(0)
+}
+
+model LearningSession {
+  id      String @id @default(cuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic   String
+  minutes Int
+  date    String // YYYY-MM-DD
+
+  @@index([userId, date])
+}
+
+/* ============ LIVRES ============ */
+enum BookStatus {
+  reading
+  done
+}
+
+model Book {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  pages       Int
+  currentPage Int        @default(0)
+  status      BookStatus @default(reading)
+
+  logs ReadingLog[]
+}
+
+model ReadingLog {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookId String
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  pages  Int
+  date   String // YYYY-MM-DD
+
+  @@index([userId, date])
+}
+
+/* ============ DÉPENDANCES ============ */
+model DependencyItem {
+  id         String @id @default(cuid())
+  userId     String
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  costPerDay Float  @default(0)
+  createdAt  String // YYYY-MM-DD
+
+  counts DependencyCount[]
+}
+
+model DependencyCount {
+  id     String         @id @default(cuid())
+  userId String
+  user   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId String
+  item   DependencyItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  date   String // YYYY-MM-DD
+  count  Int            @default(0)
+
+  @@unique([itemId, date])
+  @@index([userId, date])
+}
+
+/* ============ MAISON ============ */
+model HouseTask {
+  id       String  @id @default(cuid())
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name     String
+  freqDays Int
+  lastDone String? // YYYY-MM-DD
+
+  logs HouseTaskLog[]
+}
+
+model HouseTaskLog {
+  id     String    @id @default(cuid())
+  userId String
+  user   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId String
+  task   HouseTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  date   String // YYYY-MM-DD
+}
+
+/* ============ RELATIONS ============ */
+model Contact {
+  id          String  @id @default(cuid())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  freqDays    Int
+  lastContact String? // YYYY-MM-DD
+
+  logs ContactLog[]
+}
+
+model ContactLog {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  date      String // YYYY-MM-DD
+}
+
+/* ============ PRIÈRE ============ */
+enum Prayer {
+  Fajr
+  Dhuhr
+  Asr
+  Maghrib
+  Isha
+}
+
+model PrayerCheck {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date   String // YYYY-MM-DD
+  prayer Prayer
+
+  @@unique([userId, date, prayer])
+}
+
+/* ============ VÉHICULE ============ */
+model VehicleTask {
+  id       String  @id @default(cuid())
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name     String
+  freqDays Int
+  lastDone String? // YYYY-MM-DD
+
+  logs VehicleTaskLog[]
+}
+
+model VehicleTaskLog {
+  id     String      @id @default(cuid())
+  userId String
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId String
+  task   VehicleTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  date   String // YYYY-MM-DD
+}
+
+/* ============ SOMMEIL ============ */
+model SleepLog {
+  id      String @id @default(cuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date    String // YYYY-MM-DD
+  hours   Float
+  quality Int
+
+  @@unique([userId, date])
+}
+
+/* ============ TO-DO ============ */
+model TodoTask {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  important Boolean @default(false)
+  done      Boolean @default(false)
+  doneDate  String? // YYYY-MM-DD
+  createdAt String // YYYY-MM-DD
+
+  @@index([userId, done])
+}
