@@ -39,6 +39,9 @@ model User {
   vehicleTaskLogs   VehicleTaskLog[]
   sleepLogs         SleepLog[]
   todoTasks         TodoTask[]
+  liftLogs          LiftLog[]
+  meals             Meal[]
+  shoppingItems     ShoppingItem[]
 }
 
 /// Réglages + petits paramètres par domaine (un par utilisateur).
@@ -49,8 +52,8 @@ model Settings {
   name    String @default("")
   currency String @default("EUR")
 
-  // Domaines actifs (13 ids) ; tous actifs par défaut.
-  activeDomains String[] @default(["fin","sport","hab","goal","book","dep","maison","rel","priere","vehicule","sommeil","todo"])
+  // Domaines actifs (14 ids) ; tous actifs par défaut.
+  activeDomains String[] @default(["fin","sport","hab","goal","book","dep","maison","rel","priere","vehicule","sommeil","todo","nutrition"])
 
   // Prière
   prayerCity   String?
@@ -59,9 +62,17 @@ model Settings {
   prayerMethod String  @default("19")
 
   // Petits réglages numériques par domaine
-  monthlyBudget Int   @default(1000) // fin
-  weeklyTarget  Int   @default(3)    // sport
-  sleepTarget   Float @default(8)    // sommeil
+  monthlyBudget Int    @default(1000) // fin
+  weeklyTarget  Int    @default(3)    // sport
+  sleepTarget   Float  @default(8)    // sommeil
+  weightGoal    Float? // sport — objectif de poids (kg), pour la projection de tendance
+
+  // Profil physique (nutrition) — sert au calcul des cibles caloriques/protéines.
+  heightCm       Int?
+  age            Int?
+  sex            String? // "h" | "f"
+  activityLevel  Int     @default(2) // 0 sédentaire … 4 très actif
+  nutritionGoal  String  @default("maintien") // "perte" | "maintien" | "prise"
 
   updatedAt DateTime @updatedAt
 }
@@ -105,6 +116,18 @@ model Weight {
   date   String // YYYY-MM-DD
 
   @@unique([userId, date])
+}
+
+/// Charge soulevée pour un exercice donné, à une séance donnée ("mes charges").
+model LiftLog {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercise String
+  kg       Float
+  date     String // YYYY-MM-DD
+
+  @@index([userId, date])
 }
 
 /* ============ HABITUDES ============ */
@@ -296,6 +319,31 @@ model SleepLog {
   quality Int
 
   @@unique([userId, date])
+}
+
+/* ============ NUTRITION & COURSES ============ */
+model Meal {
+  id      String @id @default(cuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label   String
+  kcal    Int
+  protein Int    @default(0)
+  date    String // YYYY-MM-DD
+
+  @@index([userId, date])
+}
+
+model ShoppingItem {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  cat       String  @default("Autre")
+  checked   Boolean @default(false)
+  createdAt String // YYYY-MM-DD
+
+  @@index([userId])
 }
 
 /* ============ TO-DO ============ */

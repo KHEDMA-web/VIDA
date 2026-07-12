@@ -31,6 +31,7 @@ export async function getDashboardData(userId: string) {
     vehicleLogs,
     sleepLogs,
     todos,
+    meals,
   ] = await Promise.all([
     prisma.settings.findUniqueOrThrow({ where: { userId } }),
     prisma.transaction.findMany({ where: { userId, date: { gte: since } } }),
@@ -52,6 +53,7 @@ export async function getDashboardData(userId: string) {
     prisma.vehicleTaskLog.findMany({ where: { userId, date: { gte: since } } }),
     prisma.sleepLog.findMany({ where: { userId, date: { gte: since } } }),
     prisma.todoTask.findMany({ where: { userId } }),
+    prisma.meal.findMany({ where: { userId, date: { gte: since } } }),
   ]);
 
   const active = (settings.activeDomains.length ? settings.activeDomains : ALL_IDS) as DomainId[];
@@ -62,6 +64,7 @@ export async function getDashboardData(userId: string) {
   const habFrac = habits.length ? todayHabitChecks.length / habits.length : 0;
   const goalDone = learningSessions.some((s) => s.date === d) ? 1 : 0;
   const bookDone = readingLogs.some((l) => l.date === d) ? 1 : 0;
+  const nutritionDone = meals.some((m) => m.date === d) ? 1 : 0;
 
   const todayDepCounts = depCounts.filter((c) => c.date === d);
   const depFrac = depItems.length
@@ -88,6 +91,7 @@ export async function getDashboardData(userId: string) {
   const fractions: Fraction[] = [
     { id: "fin", color: T.fin, value: finDone },
     { id: "sport", color: T.sport, value: sportDone },
+    { id: "nutrition", color: T.nutrition, value: nutritionDone },
     { id: "hab", color: T.hab, value: habFrac },
     { id: "goal", color: T.goal, value: goalDone },
     { id: "book", color: T.book, value: bookDone },
@@ -118,6 +122,7 @@ export async function getDashboardData(userId: string) {
     ? (sleepLogs.reduce((s, l) => s + l.hours, 0) / sleepLogs.length).toFixed(1)
     : null;
   const todo7 = todos.filter((t) => t.done && t.doneDate && days7.includes(t.doneDate)).length;
+  const meals7 = meals.length;
 
   return {
     settings,
@@ -134,6 +139,7 @@ export async function getDashboardData(userId: string) {
     bilan: [
       { id: "fin", label: "Dépenses", value: dep7, kind: "currency" } as BilanRow,
       { id: "sport", label: "Séances de sport", value: `${seances7} / ${settings.weeklyTarget} visées` } as BilanRow,
+      { id: "nutrition", label: "Repas notés", value: `${meals7}` } as BilanRow,
       { id: "hab", label: "Habitudes tenues", value: habits.length ? `${habAvg}%` : "—" } as BilanRow,
       { id: "goal", label: "Apprentissage", value: `${learn7} min` } as BilanRow,
       { id: "book", label: "Lecture", value: `${pages7} pages` } as BilanRow,

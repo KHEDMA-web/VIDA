@@ -42,6 +42,14 @@ export function BooksView({ books, logs }: { books: Book[]; logs: ReadingLog[] }
   const done = books.filter((b) => b.status === "done");
   const days7 = lastNDays(7);
   const pages7 = logs.filter((l) => days7.includes(l.date)).reduce((s, l) => s + l.pages, 0);
+  const pacePerDay = pages7 / 7;
+
+  const etaText = (b: Book) => {
+    const remaining = b.pages - b.currentPage;
+    if (remaining <= 0 || pacePerDay < 0.3) return null;
+    const days = Math.ceil(remaining / pacePerDay);
+    return `Fini dans ~${days} j au rythme actuel (${pacePerDay.toFixed(1)} p/j)`;
+  };
 
   const BookRow = (b: Book) => {
     const pct = Math.round((b.currentPage / b.pages) * 100);
@@ -57,7 +65,10 @@ export function BooksView({ books, logs }: { books: Book[]; logs: ReadingLog[] }
         <div style={{ height: 8, background: T.surface2, borderRadius: 4, marginBottom: 8 }}>
           <div style={{ width: `${pct}%`, height: "100%", background: T.book, borderRadius: 4, transition: "width .3s" }} />
         </div>
-        <div style={{ color: T.muted, fontSize: 12, marginBottom: 8 }}>Page {b.currentPage} / {b.pages}</div>
+        <div style={{ color: T.muted, fontSize: 12, marginBottom: 8 }}>
+          Page {b.currentPage} / {b.pages}
+          {b.status === "reading" && etaText(b) && <> · {etaText(b)}</>}
+        </div>
         {b.status === "reading" && (
           <div style={{ display: "flex", gap: 8 }}>
             <Input placeholder="Pages lues aujourd'hui" inputMode="numeric"

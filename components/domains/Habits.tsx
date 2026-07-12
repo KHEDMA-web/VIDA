@@ -49,6 +49,19 @@ export function HabitsView({ habits }: { habits: Habit[] }) {
     return s;
   };
 
+  /** Plus longue série jamais réalisée (pas seulement la série en cours). */
+  const bestStreak = (h: Habit) => {
+    const sorted = [...new Set(h.checks.map((c) => c.date))].sort();
+    let best = 0, cur = 0, prev: Date | null = null;
+    for (const day of sorted) {
+      const dt = new Date(day);
+      cur = prev && (dt.getTime() - prev.getTime()) / 86400000 === 1 ? cur + 1 : 1;
+      best = Math.max(best, cur);
+      prev = dt;
+    }
+    return best;
+  };
+
   return (
     <div>
       <MiniHeader title="Habitudes" color={T.hab} sub={`${todayCount}/${habits.length || 0} faites aujourd'hui`} />
@@ -72,6 +85,7 @@ export function HabitsView({ habits }: { habits: Habit[] }) {
                     <span style={{ color: T.fin, fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 3 }}>
                       <Flame size={14} />{streak(h)}j
                     </span>
+                    <span style={{ color: T.muted, fontSize: 11 }}>record {bestStreak(h)}j</span>
                     <button onClick={() => remove(h.id)} aria-label="Supprimer" style={{ background: "none", border: "none", color: T.muted, cursor: "pointer" }}>
                       <Trash2 size={14} />
                     </button>

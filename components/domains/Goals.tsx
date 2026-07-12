@@ -19,6 +19,14 @@ export function GoalsView({ goals, sessions }: { goals: Goal[]; sessions: Learni
 
   const days7 = lastNDays(7);
   const learn7 = sessions.filter((s) => days7.includes(s.date)).reduce((a, s) => a + s.minutes, 0);
+  const learnTotal = sessions.reduce((a, s) => a + s.minutes, 0);
+  const byTopic = Object.entries(
+    sessions.reduce<Record<string, number>>((acc, s) => {
+      acc[s.topic] = (acc[s.topic] || 0) + s.minutes;
+      return acc;
+    }, {})
+  ).map(([topic, minutes]) => ({ topic, minutes })).sort((a, b) => b.minutes - a.minutes);
+  const maxTopic = Math.max(1, ...byTopic.map((t) => t.minutes));
 
   const addGoal = async () => {
     if (!title.trim()) return;
@@ -47,7 +55,7 @@ export function GoalsView({ goals, sessions }: { goals: Goal[]; sessions: Learni
 
   return (
     <div>
-      <MiniHeader title="Objectifs & Apprentissage" color={T.goal} sub={`${learn7} min apprises sur 7 jours`} />
+      <MiniHeader title="Objectifs & Apprentissage" color={T.goal} sub={`${learn7} min sur 7 jours · ${learnTotal} min au total`} />
 
       <Section title="Mes objectifs">
         <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
@@ -86,6 +94,23 @@ export function GoalsView({ goals, sessions }: { goals: Goal[]; sessions: Learni
           </div>
         </Card>
       </Section>
+
+      {byTopic.length > 0 && (
+        <Section title="Répartition par sujet">
+          <Card>
+            {byTopic.map((t) => (
+              <div key={t.topic} style={{ marginBottom: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
+                  <span>{t.topic}</span><span style={{ color: T.goal, fontWeight: 700 }}>{t.minutes} min</span>
+                </div>
+                <div style={{ height: 6, background: T.surface2, borderRadius: 4 }}>
+                  <div style={{ width: `${(t.minutes / maxTopic) * 100}%`, height: "100%", background: T.goal, borderRadius: 4, opacity: 0.8 }} />
+                </div>
+              </div>
+            ))}
+          </Card>
+        </Section>
+      )}
 
       <Section title="Dernières sessions">
         <Card>

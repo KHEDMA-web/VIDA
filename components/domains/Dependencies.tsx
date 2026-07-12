@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Minus, Trash2, Sparkles } from "lucide-react";
 import { T } from "@/lib/theme";
-import { today, lastNDays } from "@/lib/dates";
+import { today, lastNDays, localDate } from "@/lib/dates";
 import { curSym, formatAmount } from "@/lib/currency";
 import { apiFetch } from "@/lib/api-client";
 import { Card, Section, Btn, Input, Empty, MiniHeader } from "@/components/ui";
@@ -49,6 +49,19 @@ export function DependenciesView({ items, currency = "EUR" }: { items: Item[]; c
     return days;
   };
 
+  /** Plus longue série de jours à zéro jamais tenue, pas seulement la série en cours. */
+  const bestStreakDays = (item: Item) => {
+    const byDate = new Map(item.counts.map((c) => [c.date, c.count]));
+    const end = new Date(today());
+    let best = 0, cur = 0;
+    for (const dt = new Date(item.createdAt); dt <= end; dt.setDate(dt.getDate() + 1)) {
+      const c = byDate.get(localDate(dt)) || 0;
+      if (c > 0) cur = 0;
+      else { cur++; best = Math.max(best, cur); }
+    }
+    return best;
+  };
+
   const bars7 = (item: Item) => {
     const byDate = new Map(item.counts.map((c) => [c.date, c.count]));
     return lastNDays(7).map((day) => byDate.get(day) || 0);
@@ -91,7 +104,7 @@ export function DependenciesView({ items, currency = "EUR" }: { items: Item[]; c
                     <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 26, fontWeight: 700, color: T.dep, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
                       <Sparkles size={16} />{js}
                     </div>
-                    <div style={{ color: T.muted, fontSize: 11 }}>jour{js > 1 ? "s" : ""} sans</div>
+                    <div style={{ color: T.muted, fontSize: 11 }}>jour{js > 1 ? "s" : ""} sans · record {bestStreakDays(item)}j</div>
                   </div>
                   {saved > 0 && (
                     <div style={{ flex: 1, background: T.surface2, borderRadius: 12, padding: "10px 12px", textAlign: "center" }}>

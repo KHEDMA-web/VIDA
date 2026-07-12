@@ -9,6 +9,7 @@ import { apiFetch } from "@/lib/api-client";
 import { Card, Section, Btn, Input, Empty, MiniHeader } from "@/components/ui";
 
 type Contact = { id: string; name: string; freqDays: number; lastContact: string | null };
+type ContactLog = { id: string; date: string; contact: { name: string } };
 
 function status(c: Contact) {
   if (!c.lastContact) return { txt: "Jamais noté", late: true, dueIn: -999 };
@@ -18,7 +19,7 @@ function status(c: Contact) {
   return { txt: `Contacté il y a ${since} j`, late: false, dueIn };
 }
 
-export function RelationsView({ contacts }: { contacts: Contact[] }) {
+export function RelationsView({ contacts, logs }: { contacts: Contact[]; logs: ContactLog[] }) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [freq, setFreq] = useState("14");
@@ -83,6 +84,19 @@ export function RelationsView({ contacts }: { contacts: Contact[] }) {
           })}
         </Card>
       </Section>
+
+      {logs.length > 0 && (
+        <Section title="Historique récent">
+          <Card>
+            {logs.map((l) => (
+              <div key={l.id} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: `1px solid ${T.border}`, fontSize: 13 }}>
+                <span>{l.contact.name}</span>
+                <span style={{ color: T.muted }}>{l.date.slice(8)}/{l.date.slice(5, 7)}</span>
+              </div>
+            ))}
+          </Card>
+        </Section>
+      )}
     </div>
   );
 }

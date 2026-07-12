@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Wallet, HeartPulse, Target, BookOpen, ShieldCheck, Phone, Moon, Car,
-  MoonStar, Check, Star,
+  MoonStar, Check, Star, Apple,
 } from "lucide-react";
 import { T, DOMAINS, PRAYERS, Cog, type PrayerName, type DomainId } from "@/lib/theme";
 import { getPrayerTimes, nextPrayer } from "@/lib/prayer-times";
@@ -19,6 +19,7 @@ import type { DashboardData } from "@/lib/dashboard";
 const QUICK_ACCESS: { id: DomainId; txt: string; icon: typeof Wallet; c: string }[] = [
   { id: "fin", txt: "Noter une dépense", icon: Wallet, c: T.fin },
   { id: "sport", txt: "Ajouter une séance", icon: HeartPulse, c: T.sport },
+  { id: "nutrition", txt: "Noter un repas", icon: Apple, c: T.nutrition },
   { id: "goal", txt: "Session d'apprentissage", icon: Target, c: T.goal },
   { id: "book", txt: "Pages lues", icon: BookOpen, c: T.book },
   { id: "dep", txt: "Ma conso du jour", icon: ShieldCheck, c: T.dep },

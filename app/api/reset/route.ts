@@ -26,12 +26,16 @@ export async function POST() {
       prisma.vehicleTask.deleteMany({ where: { userId } }),
       prisma.sleepLog.deleteMany({ where: { userId } }),
       prisma.todoTask.deleteMany({ where: { userId } }),
+      prisma.liftLog.deleteMany({ where: { userId } }),
+      prisma.meal.deleteMany({ where: { userId } }),
+      prisma.shoppingItem.deleteMany({ where: { userId } }),
       prisma.settings.update({
         where: { userId },
         data: {
           name: "", currency: "EUR", activeDomains: ALL_IDS,
           prayerCity: null, prayerLat: null, prayerLng: null, prayerMethod: "19",
-          monthlyBudget: 1000, weeklyTarget: 3, sleepTarget: 8,
+          monthlyBudget: 1000, weeklyTarget: 3, sleepTarget: 8, weightGoal: null,
+          heightCm: null, age: null, sex: null, activityLevel: 2, nutritionGoal: "maintien",
         },
       }),
     ]);

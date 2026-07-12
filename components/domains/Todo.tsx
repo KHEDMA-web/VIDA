@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Star, RotateCcw, Check } from "lucide-react";
 import { T } from "@/lib/theme";
-import { today } from "@/lib/dates";
+import { today, lastNDays } from "@/lib/dates";
 import { apiFetch } from "@/lib/api-client";
 import { Card, Section, Btn, Input, Empty, MiniHeader } from "@/components/ui";
 
@@ -41,11 +41,13 @@ export function TodoView({ tasks }: { tasks: Task[] }) {
   const done = tasks.filter((t) => t.done)
     .sort((a, b) => (b.doneDate || "").localeCompare(a.doneDate || ""))
     .slice(0, 15);
+  const days7 = lastNDays(7);
+  const done7 = tasks.filter((t) => t.done && t.doneDate && days7.includes(t.doneDate)).length;
 
   return (
     <div>
       <MiniHeader title="To-do" color={T.todo}
-        sub={open.length ? `${open.length} tâche${open.length > 1 ? "s" : ""} en attente` : "Tout est fait ✨"} />
+        sub={`${open.length ? `${open.length} tâche${open.length > 1 ? "s" : ""} en attente` : "Tout est fait ✨"} · ${done7} terminée${done7 > 1 ? "s" : ""} sur 7 jours`} />
 
       <Section title="Nouvelle tâche">
         <Card>

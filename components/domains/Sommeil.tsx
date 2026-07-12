@@ -37,7 +37,10 @@ export function SommeilView({ logs, target }: { logs: SleepLog[]; target: number
   const week = days7.map((day) => byDate.get(day));
   const logged = week.filter((l): l is SleepLog => Boolean(l));
   const avg = logged.length ? (logged.reduce((s, l) => s + l.hours, 0) / logged.length).toFixed(1) : null;
+  const avgQuality = logged.length ? (logged.reduce((s, l) => s + l.quality, 0) / logged.length).toFixed(1) : null;
   const maxH = Math.max(target || 8, ...logged.map((l) => l.hours), 1);
+  const best = logged.length ? logged.reduce((a, b) => (b.hours > a.hours ? b : a)) : null;
+  const worst = logged.length ? logged.reduce((a, b) => (b.hours < a.hours ? b : a)) : null;
 
   return (
     <div>
@@ -73,6 +76,23 @@ export function SommeilView({ logs, target }: { logs: SleepLog[]; target: number
           ))}
         </div>
       </Card>
+
+      {logged.length > 0 && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
+          <Card style={{ textAlign: "center", padding: 10 }}>
+            <div style={{ color: T.muted, fontSize: 11 }}>Qualité moy.</div>
+            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 18, fontWeight: 700, color: T.sommeil }}>{avgQuality}/5</div>
+          </Card>
+          <Card style={{ textAlign: "center", padding: 10 }}>
+            <div style={{ color: T.muted, fontSize: 11 }}>Meilleure nuit</div>
+            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 18, fontWeight: 700, color: T.hab }}>{best?.hours} h</div>
+          </Card>
+          <Card style={{ textAlign: "center", padding: 10 }}>
+            <div style={{ color: T.muted, fontSize: 11 }}>Pire nuit</div>
+            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 18, fontWeight: 700, color: T.sport }}>{worst?.hours} h</div>
+          </Card>
+        </div>
+      )}
 
       <Section title={todayLog ? "Nuit d'hier (modifiable)" : "Noter ma nuit"}>
         <Card>

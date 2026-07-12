@@ -4,6 +4,9 @@ import { VehiculeView } from "@/components/domains/Vehicule";
 
 export default async function VehiculePage() {
   const userId = await requireUserId();
-  const tasks = await prisma.vehicleTask.findMany({ where: { userId } });
-  return <VehiculeView tasks={tasks} />;
+  const [tasks, logs] = await Promise.all([
+    prisma.vehicleTask.findMany({ where: { userId } }),
+    prisma.vehicleTaskLog.findMany({ where: { userId }, orderBy: { date: "desc" }, take: 10, include: { task: true } }),
+  ]);
+  return <VehiculeView tasks={tasks} logs={logs} />;
 }

@@ -9,6 +9,7 @@ import { apiFetch } from "@/lib/api-client";
 import { Card, Section, Btn, Input, Empty, MiniHeader } from "@/components/ui";
 
 type Task = { id: string; name: string; freqDays: number; lastDone: string | null };
+type TaskLog = { id: string; date: string; task: { name: string } };
 
 function status(t: Task) {
   if (!t.lastDone) return { txt: "Jamais fait", late: true, dueIn: 0 };
@@ -18,7 +19,7 @@ function status(t: Task) {
   return { txt: `Dans ${dueIn} j`, late: false, dueIn };
 }
 
-export function MaisonView({ tasks }: { tasks: Task[] }) {
+export function MaisonView({ tasks, logs }: { tasks: Task[]; logs: TaskLog[] }) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [freq, setFreq] = useState("7");
@@ -81,6 +82,19 @@ export function MaisonView({ tasks }: { tasks: Task[] }) {
           })}
         </Card>
       </Section>
+
+      {logs.length > 0 && (
+        <Section title="Historique récent">
+          <Card>
+            {logs.map((l) => (
+              <div key={l.id} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: `1px solid ${T.border}`, fontSize: 13 }}>
+                <span>{l.task.name}</span>
+                <span style={{ color: T.muted }}>{l.date.slice(8)}/{l.date.slice(5, 7)}</span>
+              </div>
+            ))}
+          </Card>
+        </Section>
+      )}
     </div>
   );
 }

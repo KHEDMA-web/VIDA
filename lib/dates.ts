@@ -19,6 +19,13 @@ export function lastNDays(n: number): string[] {
 
 export const monthKey = (): string => today().slice(0, 7);
 
+export function previousMonthKey(): string {
+  const d = new Date();
+  d.setDate(1); // évite les débordements de fin de mois (ex : 31 mars - 1 mois)
+  d.setMonth(d.getMonth() - 1);
+  return localDate(d).slice(0, 7);
+}
+
 export function daysSince(dateStr: string): number {
   return Math.floor((new Date(today()).getTime() - new Date(dateStr).getTime()) / 86400000);
 }

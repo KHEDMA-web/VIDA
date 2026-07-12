@@ -5,7 +5,8 @@ import { getOrCreateSettings } from "@/lib/user";
 const EDITABLE_FIELDS = [
   "name", "currency", "activeDomains",
   "prayerCity", "prayerLat", "prayerLng", "prayerMethod",
-  "monthlyBudget", "weeklyTarget", "sleepTarget",
+  "monthlyBudget", "weeklyTarget", "sleepTarget", "weightGoal",
+  "heightCm", "age", "sex", "activityLevel", "nutritionGoal",
 ] as const;
 
 export async function GET() {

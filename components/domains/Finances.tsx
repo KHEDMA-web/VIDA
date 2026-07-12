@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, TrendingUp, TrendingDown } from "lucide-react";
 import { T } from "@/lib/theme";
-import { today, monthKey } from "@/lib/dates";
+import { today, monthKey, previousMonthKey } from "@/lib/dates";
 import { curSym, formatAmount } from "@/lib/currency";
 import { apiFetch } from "@/lib/api-client";
 import { Card, Section, Btn, Input, Select, Empty, MiniHeader } from "@/components/ui";
@@ -27,6 +27,10 @@ export function FinancesView({
   const dep = monthTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
   const rev = monthTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
   const budgetPct = Math.min(100, Math.round((dep / (monthlyBudget || 1)) * 100));
+
+  const prevMk = previousMonthKey();
+  const prevDep = transactions.filter((t) => t.date.startsWith(prevMk) && t.type === "expense").reduce((s, t) => s + t.amount, 0);
+  const depDeltaPct = prevDep > 0 ? Math.round(((dep - prevDep) / prevDep) * 100) : null;
 
   const byCat = CATS.map((c) => ({
     cat: c,
@@ -81,6 +85,14 @@ export function FinancesView({
         <div style={{ height: 10, background: T.surface2, borderRadius: 6, overflow: "hidden" }}>
           <div style={{ width: `${budgetPct}%`, height: "100%", background: budgetPct >= 90 ? T.sport : T.fin, borderRadius: 6, transition: "width .3s" }} />
         </div>
+        {depDeltaPct !== null && (
+          <div style={{ marginTop: 8, fontSize: 12, color: T.muted }}>
+            vs mois dernier ({formatAmount(prevDep, currency)}) :{" "}
+            <span style={{ fontWeight: 700, color: depDeltaPct > 0 ? T.sport : T.hab }}>
+              {depDeltaPct > 0 ? "+" : ""}{depDeltaPct}%
+            </span>
+          </div>
+        )}
       </Card>
 
       <Section title="Ajouter">

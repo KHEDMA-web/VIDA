@@ -6,6 +6,7 @@ import { AlertTriangle, LogOut } from "lucide-react";
 import { T, DOMAINS, ALL_IDS, type DomainId } from "@/lib/theme";
 import { CURRENCIES } from "@/lib/currency";
 import { CITIES, PRAYER_METHODS } from "@/lib/prayer-times";
+import { ACTIVITY_LEVELS, NUTRITION_GOALS } from "@/lib/nutrition";
 import { apiFetch } from "@/lib/api-client";
 import { Card, Section, Btn, Input, Select, MiniHeader } from "@/components/ui";
 import { signOut } from "@/app/auth/actions";
@@ -13,6 +14,8 @@ import { signOut } from "@/app/auth/actions";
 type SettingsData = {
   name: string; currency: string; activeDomains: string[];
   prayerCity: string | null; prayerLat: number | null; prayerLng: number | null; prayerMethod: string;
+  heightCm: number | null; age: number | null; sex: string | null;
+  activityLevel: number; nutritionGoal: string;
 };
 
 export function SettingsView({ settings }: { settings: SettingsData }) {
@@ -57,6 +60,45 @@ export function SettingsView({ settings }: { settings: SettingsData }) {
           <Select value={settings.currency} onChange={(e) => patch({ currency: e.target.value })}>
             {CURRENCIES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </Select>
+        </Card>
+      </Section>
+
+      <Section title="Profil physique (nutrition)">
+        <Card>
+          <div style={{ color: T.muted, fontSize: 12, marginBottom: 10 }}>
+            Sert uniquement à calculer tes cibles caloriques/protéiques dans Nutrition. Rien n&apos;est envoyé nulle part.
+          </div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ color: T.muted, fontSize: 12, marginBottom: 6 }}>Taille (cm)</div>
+              <Input placeholder="175" inputMode="numeric" defaultValue={settings.heightCm ?? ""}
+                onBlur={(e) => patch({ heightCm: parseInt(e.target.value) || null })} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ color: T.muted, fontSize: 12, marginBottom: 6 }}>Âge</div>
+              <Input placeholder="30" inputMode="numeric" defaultValue={settings.age ?? ""}
+                onBlur={(e) => patch({ age: parseInt(e.target.value) || null })} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ color: T.muted, fontSize: 12, marginBottom: 6 }}>Sexe</div>
+              <Select value={settings.sex ?? ""} onChange={(e) => patch({ sex: e.target.value || null })}>
+                <option value="">—</option>
+                <option value="h">Homme</option>
+                <option value="f">Femme</option>
+              </Select>
+            </div>
+          </div>
+          <div style={{ color: T.muted, fontSize: 13, margin: "4px 0 6px" }}>Niveau d&apos;activité</div>
+          <Select value={settings.activityLevel} onChange={(e) => patch({ activityLevel: parseInt(e.target.value) })} style={{ marginBottom: 10 }}>
+            {ACTIVITY_LEVELS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </Select>
+          <div style={{ color: T.muted, fontSize: 13, margin: "4px 0 6px" }}>Objectif</div>
+          <Select value={settings.nutritionGoal} onChange={(e) => patch({ nutritionGoal: e.target.value })}>
+            {NUTRITION_GOALS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </Select>
+          <div style={{ color: T.muted, fontSize: 12, marginTop: 8 }}>
+            Le poids utilisé pour le calcul est ta dernière pesée notée dans Sport.
+          </div>
         </Card>
       </Section>
 

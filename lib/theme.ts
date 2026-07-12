@@ -1,7 +1,7 @@
 import {
   LayoutGrid, Wallet, HeartPulse, CheckCircle2, Target, BookOpen,
   ShieldCheck, Home as HomeIcon, Users, MoonStar, Car, Moon, ListTodo,
-  Settings as Cog, type LucideIcon,
+  Apple, Settings as Cog, type LucideIcon,
 } from "lucide-react";
 
 export const T = {
@@ -23,11 +23,12 @@ export const T = {
   vehicule: "#4DABF7",
   sommeil: "#9775FA",
   todo: "#CED4DA",
+  nutrition: "#A9E34B",
 } as const;
 
 export type DomainId =
   | "fin" | "sport" | "hab" | "goal" | "book" | "dep"
-  | "maison" | "rel" | "priere" | "vehicule" | "sommeil" | "todo";
+  | "maison" | "rel" | "priere" | "vehicule" | "sommeil" | "todo" | "nutrition";
 
 export const PRAYERS = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"] as const;
 export type PrayerName = (typeof PRAYERS)[number];
@@ -35,6 +36,7 @@ export type PrayerName = (typeof PRAYERS)[number];
 export const DOMAINS: { id: DomainId; label: string; color: string; icon: LucideIcon }[] = [
   { id: "fin", label: "Finances", color: T.fin, icon: Wallet },
   { id: "sport", label: "Sport", color: T.sport, icon: HeartPulse },
+  { id: "nutrition", label: "Nutrition", color: T.nutrition, icon: Apple },
   { id: "hab", label: "Habitudes", color: T.hab, icon: CheckCircle2 },
   { id: "goal", label: "Objectifs", color: T.goal, icon: Target },
   { id: "book", label: "Livres", color: T.book, icon: BookOpen },
