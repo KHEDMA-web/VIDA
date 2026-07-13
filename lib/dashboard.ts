@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { getOrCreateSettings } from "./user";
 import { lastNDays, today, daysSince } from "./dates";
 import { T, PRAYERS, ALL_IDS, type DomainId } from "./theme";
 import type { Fraction } from "@/components/Boussole";
@@ -32,7 +33,7 @@ export async function getDashboardData(userId: string) {
     sleepLogs,
     todos,
   ] = await Promise.all([
-    prisma.settings.findUniqueOrThrow({ where: { userId } }),
+    getOrCreateSettings(userId),
     prisma.transaction.findMany({ where: { userId, date: { gte: since } } }),
     prisma.sportSession.findMany({ where: { userId, date: { gte: since } } }),
     prisma.habit.findMany({ where: { userId } }),

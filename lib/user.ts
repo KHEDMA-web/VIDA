@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { headers } from "next/headers";
 import { createClient } from "./supabase/server";
 import { prisma } from "./prisma";
@@ -21,8 +22,15 @@ export async function requireUserId(): Promise<string> {
 /**
  * Garantit l'existence des lignes User + Settings pour l'utilisateur courant
  * (premier appel après inscription Supabase) et renvoie les settings.
+ *
+ * Enrobé avec React `cache()` : le layout et la page appellent tous les deux
+ * cette fonction sur une même requête (rendus en parallèle par Next.js), donc
+ * sans mémoïsation on payait 2x l'aller-retour DB — et pire, sur un compte
+ * flambant neuf la page pouvait lire les settings avant que le layout ait fini
+ * de les créer. `cache()` déduplique les appels identiques dans une même
+ * requête : un seul appel réel, la seconde invocation attend la même promesse.
  */
-export async function getOrCreateSettings(userId: string) {
+export const getOrCreateSettings = cache(async (userId: string) => {
   await prisma.user.upsert({
     where: { id: userId },
     update: {},
@@ -33,4 +41,4 @@ export async function getOrCreateSettings(userId: string) {
     update: {},
     create: { userId, activeDomains: ALL_IDS },
   });
-}
+});
