@@ -1,9 +1,17 @@
+import { headers } from "next/headers";
 import { createClient } from "./supabase/server";
 import { prisma } from "./prisma";
 import { ALL_IDS } from "./theme";
 
-/** Retourne l'id Supabase (auth.users.id) de l'utilisateur courant, ou lève si non authentifié. */
+/**
+ * Retourne l'id Supabase (auth.users.id) de l'utilisateur courant, ou lève si non authentifié.
+ * Réutilise le header posé par le middleware (déjà vérifié via un appel réseau à Supabase Auth)
+ * pour éviter de revalider le JWT à chaque layout/page/route sur la même requête.
+ */
 export async function requireUserId(): Promise<string> {
+  const fromMiddleware = (await headers()).get("x-user-id");
+  if (fromMiddleware) return fromMiddleware;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Unauthorized");

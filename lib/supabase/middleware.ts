@@ -6,7 +6,7 @@ type CookieToSet = { name: string; value: string; options: CookieOptions };
 
 /** Rafraîchit la session Supabase à chaque requête et protège les pages non publiques. */
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  const pendingCookies: CookieToSet[] = [];
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,16 +18,23 @@ export async function updateSession(request: NextRequest) {
         },
         setAll(cookiesToSet: CookieToSet[]) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
+          pendingCookies.push(...cookiesToSet);
         },
       },
     }
   );
 
   const { data: { user } } = await supabase.auth.getUser();
+
+  // Neutralise systématiquement tout header x-user-id envoyé par le client :
+  // ne jamais le laisser traverser tel quel avant de le reposer (ou non) nous-mêmes.
+  request.headers.delete("x-user-id");
+  if (user) {
+    // Évite de revalider le JWT via un nouvel appel réseau à Supabase Auth
+    // dans chaque layout/page/route : ce header, posé après vérification ici,
+    // est réutilisé par requireUserId() en aval.
+    request.headers.set("x-user-id", user.id);
+  }
 
   const isPublic = PUBLIC_PATHS.some((p) => request.nextUrl.pathname.startsWith(p));
   if (!user && !isPublic) {
@@ -36,5 +43,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  const response = NextResponse.next({ request });
+  pendingCookies.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
   return response;
 }
