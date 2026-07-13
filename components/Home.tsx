@@ -14,7 +14,9 @@ import { apiFetch } from "@/lib/api-client";
 import { today } from "@/lib/dates";
 import { Card, Section } from "./ui";
 import { Boussole } from "./Boussole";
+import { TrendChart } from "./TrendChart";
 import type { DashboardData } from "@/lib/dashboard";
+import type { TrendData } from "@/lib/trends";
 
 const QUICK_ACCESS: { id: DomainId; txt: string; icon: typeof Wallet; c: string }[] = [
   { id: "fin", txt: "Noter une dépense", icon: Wallet, c: T.fin },
@@ -27,7 +29,7 @@ const QUICK_ACCESS: { id: DomainId; txt: string; icon: typeof Wallet; c: string 
   { id: "vehicule", txt: "Entretien véhicule", icon: Car, c: T.vehicule },
 ];
 
-export function HomeView({ data }: { data: DashboardData }) {
+export function HomeView({ data, trend }: { data: DashboardData; trend: TrendData }) {
   const router = useRouter();
   const { settings, active, fractions, habits, todayHabitChecks, todayPrayers, openTasks, bilan } = data;
 
@@ -189,6 +191,8 @@ export function HomeView({ data }: { data: DashboardData }) {
           ))}
         </Card>
       </Section>
+
+      <TrendChart data={trend} />
     </div>
   );
 }
