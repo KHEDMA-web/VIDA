@@ -5,8 +5,11 @@ node_modules
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+supabase/.temp
 
 # Agent skill installs (local symlinks/absolute paths, not app source)
 .agents
 .claude
 skills-lock.json
+
+.vercel
